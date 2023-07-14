@@ -24,14 +24,24 @@ const (
  `
 )
 
-func main() {
+var (
+	Version string = "v1.0"
+)
 
+func main() {
 	verbosePtr := flag.Bool("v", false, "Enable verbose mode")
 	jsonOutputPtr := flag.String("json", "", "Use - for stdout or a filepath to save to the file")
+	versionPtr := flag.Bool("version", false, "version details")
 	flag.Parse()
 
 	verbose := *verbosePtr
 	jsonOutput := *jsonOutputPtr
+	printVersion := *versionPtr
+
+	if printVersion {
+		fmt.Println(Version)
+		return
+	}
 
 	if jsonOutput == "" {
 		fmt.Println(headerArt)

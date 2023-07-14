@@ -22,6 +22,9 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.19
+      - name: Get tag name
+        id: get_tag
+        run: echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
       -
         name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2

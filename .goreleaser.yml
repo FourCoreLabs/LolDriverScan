@@ -4,6 +4,7 @@ builds:
       - windows
     goarch:
       - amd64
+    ldflags: "-X main.Version={{ .Env.TAG }}"
     main: loldriverscan.go
 archives:
   - format: zip
