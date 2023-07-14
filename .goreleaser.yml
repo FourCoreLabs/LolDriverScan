@@ -1,0 +1,9 @@
+builds:
+  - binary: loldriverscan
+    goos:
+      - windows
+    goarch:
+      - amd64
+    main: loldriverscan.go
+archives:
+  - format: zip
