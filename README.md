@@ -1,7 +1,7 @@
 # LolDriverScan
 
 LolDriverScan is a golang tool that allows users to discover vulnerable drivers on their system.
-This tool fetches the loldriverscan.io list from their APIs and scans the system for any vulnerable drivers
+This tool fetches the [loldrivers.io](https://www.loldrivers.io/) list from their APIs and scans the system for any vulnerable drivers
 This project is implemented in Go and does not require elevated privileges to run.
 
 ## Features
