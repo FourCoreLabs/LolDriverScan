@@ -62,7 +62,7 @@ func main() {
 		panic(err)
 	}
 
-	loldrivers := []*pkg.LolDriver{}
+	loldrivers := []pkg.LolDriver{}
 
 	for _, svcName := range driverServices {
 		dSvc, err := pkg.OpenService(svcMgr, svcName)
@@ -96,6 +96,14 @@ func main() {
 			continue
 		}
 
+		authentihashes, err := pkg.GetAuthentihash(normalisedDriverPath)
+		if err != nil {
+			if verbose {
+				fmt.Printf("[-] Cannot compute sha256 hash for %v: %v\n", normalisedDriverPath, err)
+			}
+			continue
+		}
+
 		hashes, err := pkg.HashFile(normalisedDriverPath)
 		if err != nil {
 			if verbose {
@@ -103,8 +111,9 @@ func main() {
 			}
 			continue
 		}
-		driver := lolDriversList.FindDriver(hashes)
-		if driver == nil {
+
+		driver, err := lolDriversList.FindDriver(hashes, authentihashes)
+		if err != nil {
 			continue
 		}
 		driver.Path = normalisedDriverPath

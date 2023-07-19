@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"crypto"
 	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
@@ -8,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	peparser "github.com/saferwall/pe"
 
 	"golang.org/x/sys/windows"
 )
@@ -52,20 +55,41 @@ type Hashes struct {
 	Sha256 string
 }
 
-func HashFile(path string) (*Hashes, error) {
+func HashFile(path string) (Hashes, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return Hashes{}, err
 	}
 
-	return &Hashes{
+	return Hashes{
 		Md5:    fmt.Sprintf("%x", md5.Sum(data)),
 		Sha1:   fmt.Sprintf("%x", sha1.Sum(data)),
 		Sha256: fmt.Sprintf("%x", sha256.Sum256(data)),
 	}, nil
 }
 
-func PrintLolDrivers(drivers []*LolDriver) {
+func GetAuthentihash(driverFilePath string) (Hashes, error) {
+	var result Hashes
+
+	peFile, err := peparser.New(driverFilePath, &peparser.Options{})
+	if err != nil {
+		return result, err
+	}
+
+	if err := peFile.Parse(); err != nil {
+		return result, nil
+	}
+
+	hashes := Hashes{
+		// Md5: fmt.Sprintf("%x", peFile.AuthentihashExt(crypto.MD5.New())[0]),
+		// Sha1:   fmt.Sprintf("%x", peFile.AuthentihashExt(crypto.SHA1.New())[0]),
+		Sha256: fmt.Sprintf("%x", peFile.AuthentihashExt(crypto.SHA256.New())[0]),
+	}
+
+	return hashes, nil
+}
+
+func PrintLolDrivers(drivers []LolDriver) {
 	maxFilenameLen := len("Filename")
 	maxPathLen := len("Path")
 	maxStatusLen := len("Status")
