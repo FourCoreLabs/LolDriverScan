@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// For testing purposes
 type testlolDrivers struct {
 	md5Map    map[string]string
 	sha1Map   map[string]string
@@ -21,6 +22,7 @@ type testlolDrivers struct {
 	lolDriverMap map[string]pkg.LolDriver
 }
 
+// For testing purposes
 func mockfectchNormaliseData() ([]pkg.LolDriver, error) {
 	testdrivers := []pkg.LolDriver{
 		{
@@ -40,6 +42,7 @@ func mockfectchNormaliseData() ([]pkg.LolDriver, error) {
 
 }
 
+// For testing purposes
 func (tes *testlolDrivers) mockFindDriver(h pkg.Hashes, auth pkg.Authentihash) (pkg.LolDriver, error) {
 	id, ok := tes.authentihashMd5Map[auth.MD5]
 	if !ok {

@@ -16,6 +16,7 @@ func TestConnectToServiceManager(t *testing.T) {
 	mockWinHandle := windows.Handle(123)
 
 	t.Run("ConnectToServiceManager without error", func(t *testing.T) {
+		// Monkey patching to mock implementation  of windows.OpenSCmanager
 		patch := monkey.Patch(windows.OpenSCManager, func(host *uint16, database *uint16, access uint32) (windows.Handle, error) {
 			return mockWinHandle, nil
 		})
@@ -33,7 +34,7 @@ func TestConnectToServiceManager(t *testing.T) {
 	})
 
 	t.Run("ConnectToServiceManager error", func(t *testing.T) {
-		mockwinError := windows.ERROR_ACCOUNT_RESTRICTION // Throws some error
+		mockwinError := windows.ERROR_ACCOUNT_RESTRICTION //  Make it throws some error
 		patch := monkey.Patch(windows.OpenSCManager, func(host *uint16, database *uint16, access uint32) (windows.Handle, error) {
 			return mockWinHandle, mockwinError
 		})

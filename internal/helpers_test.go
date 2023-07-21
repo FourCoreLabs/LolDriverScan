@@ -172,8 +172,6 @@ func TestPrintLolDrivers(t *testing.T) {
 	ioCopy(&outputBuilder, r)
 	actualOutput := outputBuilder.String()
 
-	fmt.Println(actualOutput)
-
 	for _, driver := range drivers {
 		assert.Contains(t, actualOutput, driver.Filename)
 		assert.Contains(t, actualOutput, driver.Path)
