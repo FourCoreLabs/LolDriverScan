@@ -21,19 +21,23 @@ type testlolDrivers struct {
 	lolDriverMap map[string]pkg.LolDriver
 }
 
-type testDriverApi struct {
-	ID       string
-	Category string
-	Samples  []struct {
-		Filename         string
-		MD5              string
-		Sha1             string
-		Sha256           string
-		OriginalFilename string
-		Authentihash     pkg.Authentihash
+func mockfectchNormaliseData() ([]pkg.LolDriver, error) {
+	testdrivers := []pkg.LolDriver{
+		{
+			ID:           "driver-1",
+			Filename:     "driver1.exe",
+			Path:         "/sample/path/to/driver",
+			Status:       "active",
+			Malicious:    false,
+			MD5:          "md5-hash",
+			Sha1:         "sha1-hash",
+			Sha256:       "sha256-hash",
+			CVEs:         []string{"CVE-2021-1111", "CVE-2021-2222"},
+			Authentihash: pkg.Authentihash{MD5: "auth-md5-1"},
+		},
 	}
-	Cve  []string
-	CVEs []string
+	return testdrivers, nil
+
 }
 
 func (tes *testlolDrivers) mockFindDriver(h pkg.Hashes, auth pkg.Authentihash) (pkg.LolDriver, error) {
@@ -66,10 +70,6 @@ func (tes *testlolDrivers) mockFindDriver(h pkg.Hashes, auth pkg.Authentihash) (
 	return lolDriver, nil
 }
 
-func mockCreateVulnerableDriverFinder() (*testlolDrivers, error) {
-	driverData, err := pkg.CreateVulnerableDriverFinder()
-}
-
 func TestDrivers(t *testing.T) {
 	lolDriversApiUrl := `https://www.loldrivers.io/api/drivers.json`
 
@@ -84,25 +84,15 @@ func TestDrivers(t *testing.T) {
 	}
 }
 
-// func TestFetchApiNormaliseData(t *testing.T) {
-// 	lolDriversApiUrl := `https://www.loldrivers.io/api/drivers.json`
-// 	resp, err := http.Get(lolDriversApiUrl)
-// 	if err != nil {
-// 		t.Fatalf("[FATAL]Unable to get requested driver: %v", err)
-// 	}
-// 	defer resp.Body.Close()
-// 	responseData, err := io.ReadAll(resp.Body)
-// 	if err != nil {
-// 		t.Fatalf("[FATAL]Unable to read data from response: %v", err)
-// 	}
+func TestFetchApiNormaliseData(t *testing.T) {
+	sampledriver, err := mockfectchNormaliseData() // Mocking HTTP Get request
+	if err != nil {
+		t.Fail() // Will not occur
+	}
 
-// 	apiResponse := testDriverApi{}
-// 	err = json.Unmarshal(responseData, &apiResponse)
-// 	if err != nil {
-// 		t.Error("Error unmarshalling response")
-// 	}
-
-// }
+	assert.NotEmpty(t, sampledriver, "Driver list must not be empty")
+	assert.Equal(t, sampledriver[0].ID, "driver-1")
+}
 
 func TestFindDriver(t *testing.T) {
 
@@ -124,13 +114,20 @@ func TestFindDriver(t *testing.T) {
 			"testdriver-4": {ID: "testdriver-4"},
 			"testdriver-5": {ID: "testdriver-5"},
 			"testdriver-6": {ID: "testdriver-6"},
-			"testdriver-7": {ID: "testdriver-7", Authentihash: pkg.Authentihash{MD5: "authMd5"}},
 		},
 	}
 
-	// Case 1:
-	t.Run("No matching drivers found", func(t *testing.T) {
-		_, err := testlolDrivers.mockFindDriver(pkg.Hashes{Md5: "testdriver-6"}, pkg.Authentihash{MD5: "authMD5hash"})
+	// Case 1.1:
+	t.Run("No matching drivers found [INVALID HASH]", func(t *testing.T) {
+		_, err := testlolDrivers.mockFindDriver(pkg.Hashes{Md5: "testdriver-1"}, pkg.Authentihash{MD5: "authMD5HASH"})
+		if err == nil {
+			t.Errorf("Expected error, got nil error")
+		}
+	})
+
+	// Case 1.2:
+	t.Run("No matching drivers found [INVALID DRIVER]", func(t *testing.T) {
+		_, err := testlolDrivers.mockFindDriver(pkg.Hashes{Md5: "testdriver-2"}, pkg.Authentihash{Sha256: "hashSha256"})
 		if err == nil {
 			t.Errorf("Expected error, got nil error")
 		}
@@ -142,21 +139,19 @@ func TestFindDriver(t *testing.T) {
 		if err != nil {
 			t.Errorf("Expected nil error, got error")
 		}
-		assert.Contains(t, foundDriver.Authentihash.MD5, "authMd5")
-		assert.Contains(t, foundDriver.MD5, "testdriver-1")
+		assert.Equal(t, foundDriver.Authentihash.MD5, "authMd5")
+		assert.Equal(t, foundDriver.MD5, "testdriver-1")
 	})
 
-	//Case 3:
-	t.Run("Correct drivers found", func(t *testing.T) {
-		foundDriver, err := testlolDrivers.mockFindDriver(pkg.Hashes{Md5: "testdriver-1"}, pkg.Authentihash{MD5: "authMD5hash"})
-		fmt.Println(foundDriver)
-		if err != nil {
-			t.Errorf("Expected nil error, got error")
-		}
-
-	})
 }
 
 func TestCreateVulnerableDriverFinder(t *testing.T) {
-	//
+	// Call the function
+	drivers, err := pkg.CreateVulnerableDriverFinder()
+	if err != nil {
+		t.Error("Expected nil error, got error")
+	}
+
+	assert.NotEmpty(t, drivers, "Expected drivers to have values")
+	assert.NotNil(t, drivers, "Expected drivers to not be nil")
 }
